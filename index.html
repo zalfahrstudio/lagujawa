@@ -1,0 +1,368 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ZalfahrStudio Player</title>
+
+    <style>
+      body {
+        margin: 0;
+        background: black;
+        font-family: Arial;
+        color: white;
+        overflow: hidden;
+      }
+
+      /* PLAYER CARD */
+
+      .player {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        width: 360px;
+        padding: 30px;
+        border-radius: 25px;
+        background: rgba(0, 0, 0, 0.45);
+        backdrop-filter: blur(18px);
+        box-shadow: 0 0 45px rgba(0, 200, 255, 0.25);
+        text-align: center;
+      }
+
+      /* COVER */
+
+      .cover {
+        width: 200px;
+        height: 200px;
+        margin: auto;
+        border-radius: 20px;
+        overflow: hidden;
+        box-shadow: 0 0 30px rgba(0, 200, 255, 0.6);
+      }
+
+      .cover img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+
+      /* TITLE */
+
+      #songTitle {
+        margin-top: 15px;
+        font-size: 18px;
+      }
+
+      /* PROGRESS BAR */
+
+      .progress-container {
+        width: 100%;
+        height: 8px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 20px;
+        margin-top: 15px;
+        cursor: pointer;
+      }
+
+      .progress {
+        height: 100%;
+        width: 0%;
+        background: #00ccff;
+        border-radius: 20px;
+        box-shadow: 0 0 10px #00ccff;
+      }
+
+      /* TIME */
+
+      .time {
+        display: flex;
+        justify-content: space-between;
+        font-size: 12px;
+        margin-top: 5px;
+        opacity: 0.8;
+      }
+
+      /* BUTTONS */
+
+      .controls {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 25px;
+        margin: 20px 0;
+      }
+
+      .nav-btn {
+        width: 55px;
+        height: 55px;
+        border-radius: 50%;
+        border: none;
+        font-size: 20px;
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        cursor: pointer;
+        transition: 0.2s;
+      }
+
+      .nav-btn:hover {
+        background: #00ccff;
+      }
+
+      .play-btn {
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
+        border: none;
+        font-size: 32px;
+        background: #00ccff;
+        color: white;
+        cursor: pointer;
+        box-shadow: 0 0 35px #00ccff;
+        transition: 0.2s;
+      }
+
+      .play-btn:hover {
+        transform: scale(1.08);
+      }
+
+      /* PLAYLIST */
+
+      .playlist {
+        max-height: 160px;
+        overflow-y: auto;
+        margin-top: 10px;
+        padding-right: 5px;
+      }
+
+      /* MODERN SCROLLBAR */
+
+      .playlist::-webkit-scrollbar {
+        width: 6px;
+      }
+
+      .playlist::-webkit-scrollbar-track {
+        background: transparent;
+      }
+
+      .playlist::-webkit-scrollbar-thumb {
+        background: #00ccff;
+        border-radius: 10px;
+        box-shadow: 0 0 10px #00ccff;
+      }
+
+      /* PLAYLIST ITEM */
+
+      .playlist li {
+        list-style: none;
+        padding: 10px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        cursor: pointer;
+        transition: 0.2s;
+      }
+
+      .playlist li:hover {
+        color: #00ccff;
+      }
+
+      .active {
+        color: #00ccff;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="player">
+      <div class="cover">
+        <img id="coverImg" src="cover.jpg" />
+      </div>
+
+      <div id="songTitle">Loading...</div>
+
+      <div class="progress-container" id="progressContainer">
+        <div class="progress" id="progress"></div>
+      </div>
+
+      <div class="time">
+        <span id="currentTime">0:00</span>
+        <span id="duration">0:00</span>
+      </div>
+
+      <audio id="audio"></audio>
+
+      <div class="controls">
+        <button onclick="prevSong()" class="nav-btn">⏮</button>
+
+        <button onclick="togglePlay()" class="play-btn" id="playBtn">▶</button>
+
+        <button onclick="nextSong()" class="nav-btn">⏭</button>
+      </div>
+
+      <h3>Playlist</h3>
+
+      <ul id="playlist" class="playlist"></ul>
+    </div>
+
+    <script>
+      /* PLAYLIST */
+
+      const songs = [
+        { title: "DJ All In For You", file: "lagu1.mp3", cover: "cover1.PNG" },
+        { title: "DJ Tulus", file: "lagu2.mp3", cover: "cover2.PNG" },
+        { title: "DJ Sigar", file: "lagu3.mp3", cover: "cover3.PNG" },
+        { title: "DJ Denok", file: "lagu4.mp3", cover: "cover4.PNG" },
+        { title: "DJ Tresno Liyane", file: "lagu5.mp3", cover: "cover5.PNG" },
+        { title: "DJ Wirang", file: "lagu6.mp3", cover: "cover6.PNG" },
+        { title: "DJ Raiso Ngapusi", file: "lagu7.mp3", cover: "cover7.PNG" },
+        {
+          title: "DJ Maafkan Kesalahanku",
+          file: "lagu8.mp3",
+          cover: "cover8.PNG",
+        },
+        {
+          title: "DJ Mencintaimu Dengan Ngeyel",
+          file: "lagu9.mp3",
+          cover: "cover9.PNG",
+        },
+        {
+          title: "DJ Manungso Ora Toto",
+          file: "lagu10.mp3",
+          cover: "cover10.PNG",
+        },
+        { title: "DJ Saktenane", file: "lagu11.mp3", cover: "cover11.PNG" },
+        { title: "DJ Banyu Moto", file: "lagu12.mp3", cover: "cover12.PNG" },
+        {
+          title: "DJ MIX Jawa TulusxRasah BalixSamar",
+          file: "lagu13.mp3",
+          cover: "cover13.PNG",
+        },
+        {
+          title: "DJ Wes Suwe Aku Ngenteni Kowe",
+          file: "lagu14.mp3",
+          cover: "cover14.PNG",
+        },
+      ];
+
+      const audio = document.getElementById("audio");
+      const playlistUI = document.getElementById("playlist");
+      const titleUI = document.getElementById("songTitle");
+      const progress = document.getElementById("progress");
+      const progressContainer = document.getElementById("progressContainer");
+      const coverImg = document.getElementById("coverImg");
+
+      const currentTimeEl = document.getElementById("currentTime");
+      const durationEl = document.getElementById("duration");
+
+      let currentSong = 0;
+
+      /* BUILD PLAYLIST */
+
+      songs.forEach((song, index) => {
+        let li = document.createElement("li");
+
+        li.textContent = song.title;
+
+        li.onclick = () => {
+          loadSong(index);
+          audio.play();
+          updateIcon(true);
+        };
+
+        playlistUI.appendChild(li);
+      });
+
+      /* LOAD SONG */
+
+      function loadSong(index) {
+        currentSong = index;
+
+        audio.src = songs[index].file;
+
+        titleUI.innerText = songs[index].title;
+
+        coverImg.src = songs[index].cover;
+
+        document
+          .querySelectorAll(".playlist li")
+          .forEach((li) => li.classList.remove("active"));
+
+        playlistUI.children[index].classList.add("active");
+      }
+
+      loadSong(0);
+
+      /* PLAY / PAUSE */
+
+      function togglePlay() {
+        if (audio.paused) {
+          audio.play();
+          updateIcon(true);
+        } else {
+          audio.pause();
+          updateIcon(false);
+        }
+      }
+
+      function updateIcon(state) {
+        playBtn.innerHTML = state ? "⏸" : "▶";
+      }
+
+      /* NEXT */
+
+      function nextSong() {
+        currentSong = (currentSong + 1) % songs.length;
+
+        loadSong(currentSong);
+
+        audio.play();
+
+        updateIcon(true);
+      }
+
+      /* PREV */
+
+      function prevSong() {
+        currentSong = (currentSong - 1 + songs.length) % songs.length;
+
+        loadSong(currentSong);
+
+        audio.play();
+
+        updateIcon(true);
+      }
+
+      /* AUTO NEXT */
+
+      audio.addEventListener("ended", nextSong);
+
+      /* PROGRESS UPDATE */
+
+      audio.addEventListener("timeupdate", () => {
+        let percent = (audio.currentTime / audio.duration) * 100;
+
+        progress.style.width = percent + "%";
+
+        currentTimeEl.textContent = formatTime(audio.currentTime);
+      });
+
+      audio.addEventListener("loadedmetadata", () => {
+        durationEl.textContent = formatTime(audio.duration);
+      });
+
+      progressContainer.onclick = (e) => {
+        let width = progressContainer.clientWidth;
+
+        audio.currentTime = (e.offsetX / width) * audio.duration;
+      };
+
+      function formatTime(sec) {
+        let m = Math.floor(sec / 60) || 0;
+
+        let s = Math.floor(sec % 60) || 0;
+
+        return m + ":" + (s < 10 ? "0" : "") + s;
+      }
+    </script>
+  </body>
+</html>
